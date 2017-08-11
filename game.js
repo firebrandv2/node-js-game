@@ -10,11 +10,13 @@ var socket,
 	players,
 	bullets;
 
+app.use(express.static(__dirname + '/public'));
+
+app.set('port', (process.env.PORT || 8000));
+
 function init () {
 	players = [];
 	bullets = [];
-
-	app.set('port', (process.env.PORT || 8000));
 
 	socket = io.listen (app.get('port'));
 	util.log (app.get('port'));
@@ -23,7 +25,7 @@ function init () {
 }
 
 app.get('/', function(request, response) {
-  response.sendFile('public/index');
+  response.sendFile('index.html');
 });
 
 var setEventHandlers = function () {
