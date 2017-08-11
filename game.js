@@ -10,7 +10,7 @@ var socket,
 	players,
 	bullets;
 
-app.use(express.static(__dirname + '/'));
+app.use(express.static(__dirname + '/public'));
 
 app.set('port', (process.env.PORT || 8000));
 
@@ -24,8 +24,10 @@ function init () {
 }
 
 app.get('/', function(request, response) {
-  response.sendFile('public/index.html');
+  response.sendFile('index.html');
 });
+
+app.listen (app.get('port'));
 
 var setEventHandlers = function () {
 	socket.sockets.on ('connection', onSocketConnection);
