@@ -27,10 +27,6 @@ app.get('/', function(request, response) {
   response.sendFile('index.html');
 });
 
-app.listen(app.get('port'), function() {
-  util.log('Node app is running on port', app.get('port'));
-});
-
 var setEventHandlers = function () {
 	socket.sockets.on ('connection', onSocketConnection);
 };
