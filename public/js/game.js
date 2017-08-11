@@ -42,7 +42,7 @@ function init() {
 	// Initialise the local player
 	localPlayer = new Player(startX, startY);
 
-	socket = io.connect("https://node-js-game.herokuapp.com/", {port: process.env.PORT || 8000, transports: ["websocket"]});
+	socket = io.connect("https://node-js-game.herokuapp.com", {port: process.env.PORT || 8000, transports: ["websocket"]});
 
 	remotePlayers = [];
 	localBullets = [];

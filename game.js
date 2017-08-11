@@ -1,8 +1,10 @@
+'use strict';
+
 var express = require ('express'),
 	app = express ();
 
 var util = require ('util'),
-	io = require ('socket.io'),
+	socketIO = require ('socket.io'),
 	Player = require ('./Player').Player,
 	Projectile = require ('./Projectile').Projectile;
 
@@ -10,26 +12,32 @@ var socket,
 	players,
 	bullets;
 
-app.use(express.static(__dirname + '/public'));
+var path = require('path');
 
-app.set('port', (process.env.PORT || 8000));
+var PORT = process.env.PORT || 8000;
+var INDEX = path.join(__dirname, 'public/index.html');
+
+var server,
+	io;
 
 function init () {
 	players = [];
 	bullets = [];
 
-	socket = io.listen (app.get('port'));
+//	socket = io.listen (8000);
+	server = express ()
+		.use((req, res) => res.sendFile(INDEX) )
+		.listen(PORT, () => util.log(`Listening on ${ PORT }`));
+
+	io = socketIO (server);
 
 	setEventHandlers ();
 }
 
-app.get('/', function(request, response) {
-  response.sendFile('index.html');
-  console.log ('Redirect?');
-});
+
 
 var setEventHandlers = function () {
-	socket.sockets.on ('connection', onSocketConnection);
+	io.on ('connection', onSocketConnection);
 };
 
 function onSocketConnection (client) {
