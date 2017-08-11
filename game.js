@@ -27,8 +27,6 @@ app.get('/', function(request, response) {
   response.sendFile('index.html');
 });
 
-app.listen (app.get('port'));
-
 var setEventHandlers = function () {
 	socket.sockets.on ('connection', onSocketConnection);
 };
