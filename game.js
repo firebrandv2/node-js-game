@@ -14,7 +14,10 @@ function init () {
 	players = [];
 	bullets = [];
 
-	socket = io.listen (process.env.PORT || 8000);
+	app.set('port', (process.env.PORT || 8000));
+
+	socket = io.listen (app.get('port'));
+	util.log (app.get('port'));
 
 	setEventHandlers ();
 }
