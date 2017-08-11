@@ -25,6 +25,7 @@ function init () {
 
 app.get('/', function(request, response) {
   response.sendFile('index.html');
+  console.log ('Redirect?');
 });
 
 var setEventHandlers = function () {
