@@ -1,4 +1,6 @@
-// Placeholder file for Node.js game server
+var express = require ('express'),
+	app = express ();
+
 var util = require ('util'),
 	io = require ('socket.io'),
 	Player = require ('./Player').Player,
@@ -12,7 +14,7 @@ function init () {
 	players = [];
 	bullets = [];
 
-	socket = io.listen (8000);
+	socket = io.listen (process.env.PORT || 8000);
 
 	setEventHandlers ();
 }
