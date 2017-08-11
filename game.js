@@ -22,6 +22,10 @@ function init () {
 	setEventHandlers ();
 }
 
+app.get('/', function(request, response) {
+  response.render('public/index');
+});
+
 var setEventHandlers = function () {
 	socket.sockets.on ('connection', onSocketConnection);
 };
