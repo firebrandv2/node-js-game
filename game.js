@@ -10,7 +10,7 @@ var socket,
 	players,
 	bullets;
 
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/'));
 
 app.set('port', (process.env.PORT || 8000));
 
@@ -24,7 +24,7 @@ function init () {
 }
 
 app.get('/', function(request, response) {
-  response.sendFile('index.html');
+  response.sendFile('public/index.html');
 });
 
 var setEventHandlers = function () {
