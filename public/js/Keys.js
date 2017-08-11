@@ -1,6 +1,3 @@
-/**************************************************
-** GAME KEYBOARD CLASS
-**************************************************/
 var Keys = function(up, left, right, down) {
 	var up = up || false,
 		left = left || false,
