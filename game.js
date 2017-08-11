@@ -19,13 +19,16 @@ function init () {
 	bullets = [];
 
 	socket = io.listen (app.get('port'));
-	util.log (app.get('port'));
 
 	setEventHandlers ();
 }
 
 app.get('/', function(request, response) {
   response.sendFile('index.html');
+});
+
+app.listen(app.get('port'), function() {
+  util.log('Node app is running on port', app.get('port'));
 });
 
 var setEventHandlers = function () {
