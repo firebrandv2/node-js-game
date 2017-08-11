@@ -23,7 +23,7 @@ function init () {
 }
 
 app.get('/', function(request, response) {
-  response.render('public/index');
+  response.sendFile('public/index');
 });
 
 var setEventHandlers = function () {
