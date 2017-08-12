@@ -16,6 +16,8 @@ var path = require('path');
 
 var PORT = process.env.PORT || 8000;
 var INDEX = path.join(__dirname, 'public/index.html');
+var CSS1 = path.join(__dirname, 'public/style/game.css');
+var CSS2 = path.join(__dirname, 'public/style/reset.css');
 
 var server,
 	io;
@@ -26,7 +28,7 @@ function init () {
 
 //	socket = io.listen (8000);
 	server = express ()
-		.use((req, res) => res.sendFile(INDEX) )
+		.use((req, res) => res.sendFile(INDEX); res.type ('css'); res.sendFile (CSS1); res.sendFile (CSS2) )
 		.listen(PORT, () => util.log(`Listening on ${ PORT }`));
 
 	io = socketIO (server);
