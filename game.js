@@ -20,6 +20,8 @@ var INDEX = path.join(__dirname, 'public/index.html');
 var server,
 	io;
 
+app.use(express.static(__dirname + '/public'));
+
 function init () {
 	players = [];
 	bullets = [];
@@ -41,7 +43,7 @@ var setEventHandlers = function () {
 };
 
 function onSocketConnection (client) {
-	util.log ('New player has connected: ' + client.id);
+	console.log ('New player has connected: ' + client.id);
 
 	client.on ('disconnect', onClientDisconnect);
 	client.on ('new player', onNewPlayer);
