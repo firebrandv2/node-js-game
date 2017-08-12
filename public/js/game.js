@@ -16,7 +16,9 @@ var remotePlayers,
 	lastShootTime,
 	canShoot;
 
-var socket;	
+var socket;
+
+var PORT = 8000;	
 
 /**************************************************
 ** GAME INITIALISATION
@@ -25,6 +27,10 @@ function init() {
 	// Declare the canvas and rendering context
 	canvas = document.getElementById("gameCanvas");
 	ctx = canvas.getContext("2d");
+
+	/********************/
+	//PORT = process.env.PORT || 8000;
+	/********************/
 
 	// Maximise the canvas
 	canvas.width = window.innerWidth;
@@ -35,14 +41,14 @@ function init() {
 
 	// Calculate a random start position for the local player
 	// The minus 5 (half a player size) stops the player being
-	// placed right on the egde of the screen
+	// placed right on the edge of the screen
 	var startX = Math.round(Math.random()*(canvas.width-5)),
 		startY = Math.round(Math.random()*(canvas.height-5));
 
 	// Initialise the local player
 	localPlayer = new Player(startX, startY);
 
-	socket = io.connect("https://node-js-game.herokuapp.com", {port: process.env.PORT || 8000, transports: ["websocket"]});
+	socket = io.connect("http://localhost:" + PORT, {port: PORT, transports: ["websocket"]});
 
 	remotePlayers = [];
 	localBullets = [];
