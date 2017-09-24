@@ -4,6 +4,6 @@ This is an [agar.io](http://agar.io/) clone made using an article on [Rawkes](ht
 To run the game, first install node.js and socket.io.
 Then, start the server using the following command in the root folder:
 ```
-node game.js
+$ node game.js
 ```
 You can then play the game by opening index.html in your browser.
