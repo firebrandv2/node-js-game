@@ -1,20 +1,12 @@
 /**************************************************
 ** GAME VARIABLES
 **************************************************/
-
-// TODO: Add a local bullet array such that we only update the bullets that we create.
 var canvas,			// Canvas DOM element
 	ctx,			// Canvas rendering context
 	keys,			// Keyboard input
 	localPlayer;	// Local player
 
-var remotePlayers,
-	localBullets,
-	bullets,
-	totalBullets, // Used for ID'ing bullets.
-	shootCooldown,
-	lastShootTime,
-	canShoot;
+var remotePlayers;
 
 var socket;
 
@@ -42,22 +34,15 @@ function init() {
 	// Calculate a random start position for the local player
 	// The minus 5 (half a player size) stops the player being
 	// placed right on the edge of the screen
-	var startX = Math.round(Math.random()*(canvas.width-5)),
-		startY = Math.round(Math.random()*(canvas.height-5));
+	var startX = Math.round(Math.random()*(canvas.width-10)),
+		startY = Math.round(Math.random()*(canvas.height-10));
 
 	// Initialise the local player
-	localPlayer = new Player(startX, startY);
+	localPlayer = new Player(startX, startY, 5);
 
-	socket = io.connect("http://node-js-game.herokuapp.com" , {port: PORT, transports: ["websocket"]});
+	socket = io.connect("http://localhost:8000" , {port: PORT, transports: ["websocket"]});
 
 	remotePlayers = [];
-	localBullets = [];
-	bullets = [];
-	totalBullets = 0;
-
-	shootCooldown = 1;
-	lastShootTime = 0;
-	canShoot = true;
 
 	// Start listening for events
 	setEventHandlers();
@@ -81,15 +66,12 @@ var setEventHandlers = function() {
 	socket.on("connect", onSocketConnected);
 	socket.on("disconnect", onSocketDisconnect);
 
+	socket.on ("local id", onLocalId);
 	socket.on("new player", onNewPlayer);
 	socket.on("move player", onMovePlayer);
 	socket.on("remove player", onRemovePlayer);
-
-	socket.on('new bullet', onNewBullet);
-	socket.on('move bullet', onMoveBullet);
-	socket.on('remove bullet', onRemoveBullet);
-	socket.on ('add bullet', onAddLocalBullet);
-
+	socket.on("size player", onSizePlayer);
+	socket.on ('kill player', onKillPlayer);
 };
 
 // Keyboard key down
@@ -106,15 +88,12 @@ function onKeyup(e) {
 	};
 };
 
-// Mouse Click
-function onMouseClick(e) {
-	if (localPlayer && canShoot) {
-		socket.emit('new bullet', {startX: localPlayer.getX (), startY: localPlayer.getY (), endX: e.x, endY: e.y, speed: 2.5, lifetime: 50, count: totalBullets});
-		totalBullets ++;
-		lastShootTime = new Date().getTime();
-		canShoot = false;
-	};
+function onMouseClick (e) {
+	if (localPlayer) {
+		//localPlayer.setR (10);
+	}
 }
+
 
 // Browser window resize
 function onResize(e) {
@@ -126,7 +105,7 @@ function onResize(e) {
 function onSocketConnected() {
     console.log("Connected to socket server");
 
-    socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY()});
+    socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), r: localPlayer.getR()});
 };
 
 function onSocketDisconnect() {
@@ -136,10 +115,15 @@ function onSocketDisconnect() {
 function onNewPlayer(data) {
     console.log("New player connected: " + data.id);
 
-	var newPlayer = new Player(data.x, data.y);
+	var newPlayer = new Player(data.x, data.y, data.r);
 	newPlayer.id = data.id;
 	remotePlayers.push(newPlayer);
 };
+
+function onLocalId (data) {
+	localPlayer.id = data.id;
+	console.log ("my id is " + localPlayer.id);
+}
 
 function onMovePlayer(data) {
 	var movePlayer = playerById(data.id);
@@ -153,6 +137,20 @@ function onMovePlayer(data) {
 	movePlayer.setY(data.y);
 };
 
+function onSizePlayer(data) {
+	console.log ("size player: " + data.id);
+	var sizePlayer = playerById (data.id);
+
+	if (!sizePlayer) {
+	    console.log("Player not found: " + data.id);
+	    return;
+	};
+
+	console.log (data.radius);
+	sizePlayer.setRemoteR (data.radius);
+
+}
+
 function onRemovePlayer(data) {
 	var removePlayer = playerById(data.id);
 
@@ -162,53 +160,23 @@ function onRemovePlayer(data) {
 	};
 
 	remotePlayers.splice(remotePlayers.indexOf(removePlayer), 1);
+	console.log ('removed player: ' + data.id);
 };
 
-function onNewBullet (data) {
-	var newBullet = new Projectile (data.startX, data.startY, data.endX, data.endY, data.speed, data.lifetime);
-	newBullet.id = data.id;
+function onKillPlayer (data) {
+	var removePlayer = playerById(data.id);
 
-	bullets.push (newBullet);
-};
-
-function onMoveBullet (data) {
-	var moveBullet = bulletById(data.id);
-	console.log ('move bullet: ' + data.id);
-
-	if (!moveBullet) {
-	    console.log("Projectile not found: " + data.id);
-	    return;
-	};
-
-	moveBullet.setX(data.x);
-	moveBullet.setY(data.y);
-};
-
-function onAddLocalBullet (data) {
-	for (var i = 0; i < bullets.length; i++) {
-		if (bullets[i].id === data.id) {
-			localBullets.push (bullets[i]);			
+	if (!removePlayer) {
+		if (data.id === localPlayer.id) {
+			killLocalPlayer ();
+		} else {
+		    console.log("Player not found: " + data.id);
+		    return;
 		}
-	}
-}
-
-function onRemoveBullet (data) {
-	var removeBullet = bulletById(data.id);
-	var removeLocalBullet = localBulletById (data.id);
-
-	if (!removeBullet && !removeLocalBullet) {
-	    console.log("Projectile not found: " + data.id);
-	    return;
-	} else if (!removeBullet) {
-		localBullets.splice(localBullets.indexOf(removeBullet), 1);
-	} else if (!removeLocalBullet) {
-		bullets.splice(bullets.indexOf(removeBullet), 1);
-	} else {
-		localBullets.splice(localBullets.indexOf(removeBullet), 1);
-		bullets.splice(bullets.indexOf(removeBullet), 1);
 	};
 
-};
+	remotePlayers.splice(remotePlayers.indexOf(removePlayer), 1);
+}
 
 /**************************************************
 ** GAME ANIMATION LOOP
@@ -225,23 +193,37 @@ function animate() {
 /**************************************************
 ** GAME UPDATE
 **************************************************/
+/*
+	UPDATE RETURN VALUES
+	0 - no change in radius or position
+	1 - change in radius ONLY
+	2 - change in position ONLY
+	3 - change in radius AND position
+	
+*/
 function update() {
-	if (localPlayer.update(keys)) {
+	var updateVal = localPlayer.update (keys);
+
+	if (updateVal === 1) {
+		socket.emit ("size player", {radius: localPlayer.getR ()});
+	} else if (updateVal === 2) {
     	socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
-	};
-
-	if (!canShoot && new Date ().getTime () - lastShootTime >= shootCooldown * 1000) {
-		canShoot = true;
+	} else if (updateVal === 3) {
+		socket.emit("move player", {x: localPlayer.getX(), y: localPlayer.getY()});
+		socket.emit ("size player", {radius: localPlayer.getR ()});
 	}
 
-	for (var i = 0; i < localBullets.length; i++) {
-		if (localBullets[i].update ()) {
-			socket.emit ('move bullet', {x: localBullets[i].getX (), y: localBullets[i].getY (), id: localBullets[i].id});
-		} else {
-			console.log ('Destroy the bullet!');
-			socket.emit ('remove bullet', {id: localBullets[i].id});
-		}
-	}
+	for (var i = 0; i < remotePlayers.length; i++) {
+	    if (remotePlayers[i].getR () >= localPlayer.getR ()) {
+	    	continue;
+	    }
+
+	    if (isCircleInside (localPlayer.getX (), localPlayer.getY (), localPlayer.getR (), remotePlayers[i].getX (), remotePlayers[i].getY(), remotePlayers[i].getR ())) {
+	    	console.log ("a circle is inside me!");
+	    	localPlayer.setR (localPlayer.getR()+remotePlayers[i].getR());
+	    	socket.emit ("kill player", {id: remotePlayers[i].id});
+	    }
+ 	};
 };
 
 
@@ -249,6 +231,7 @@ function update() {
 ** GAME DRAW
 **************************************************/
 function draw() {
+
 	// Wipe the canvas clean
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -260,13 +243,17 @@ function draw() {
 	for (var i = 0; i < remotePlayers.length; i++) {
 	    remotePlayers[i].draw(ctx);
 	};
-
-	for (var i = 0; i < bullets.length; i++) {
-		ctx.fillStyle='#0000FF';
-	    bullets[i].draw(ctx);
-		ctx.fillStyle='#000000';
-	};
 };
+
+function killLocalPlayer () {
+	var startX = Math.round(Math.random()*(canvas.width-10)),
+		startY = Math.round(Math.random()*(canvas.height-10));
+
+	localPlayer = new Player(startX, startY, 5);
+	remotePlayers = [];
+
+	socket.emit("new player", {x: localPlayer.getX(), y: localPlayer.getY(), r: localPlayer.getR ()});
+}
 
 function playerById(id) {
     var i;
@@ -278,22 +265,20 @@ function playerById(id) {
     return false;
 };
 
-function bulletById(id) {
-    var i;
-    for (i = 0; i < bullets.length; i++) {
-        if (bullets[i].id == id)
-            return bullets[i];
-    };
+function collide(x1, y1, w1, h1, x2, y2, w2, h2) {
+	if (x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && h1 + y1 > y2) {
+    	return true;
+	}
 
-    return false;
+	return false;
 };
 
-function localBulletById(id) {
-    var i;
-    for (i = 0; i < localBullets.length; i++) {
-        if (localBullets[i].id == id)
-            return localBullets[i];
-    };
+function isCircleInside (x1, y1, r1, x2, y2, r2) {
+	var distance = Math.sqrt ((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
 
-    return false;
-};
+	if (distance > r1 + r2) {
+		return false;
+	}
+
+	return (distance <= Math.abs (r1-r2)) ? true : false;
+}
