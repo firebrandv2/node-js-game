@@ -1,12 +1,6 @@
 {
-  "dependencies": {
-    "express": "^4.15.4",
-    "socket.io": "^2.0.3"
-  }
-}
-{
   "name" : "Agar",
-  "version" : "0.1.0",
+  "version" : "1.2.0",
   "main" : "game.js",
   "scripts" : {
     "start" : "node game.js"
