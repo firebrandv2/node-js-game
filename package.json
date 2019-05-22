@@ -4,3 +4,14 @@
     "socket.io": "^2.0.3"
   }
 }
+{
+  "name" : "Agar",
+  "version" : "0.1.0",
+  "main" : "game.js",
+  "scripts" : {
+    "start" : "node game.js"
+  },
+  "engines" : {
+    "node" : "^10"
+  }
+}
